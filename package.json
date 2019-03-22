@@ -1,0 +1,36 @@
+{
+  "name": "slotgame",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Alfie",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-rev": "^7.1.2",
+    "gulp-rev-replace": "^0.4.3",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-typescript": "^3.2.2",
+    "gulp-uglify": "^3.0.0",
+    "gulp-zip": "^4.0.0",
+    "st": "^1.2.2",
+    "tsconfig-glob": "^0.4.3",
+    "typescript": "^2.4.2"
+  },
+  "dependencies": {
+    "atob": ">=2.1.0",
+    "eventemitter3": "^2.0.3",
+    "extend": ">=3.0.2",
+    "gulp-install": "^1.1.0",
+    "howler": "^2.0.15",
+    "lodash": ">=4.17.11",
+    "minimatch": ">=3.0.2",
+    "pixi-filters": "^2.3.0",
+    "pixi.js": "^4.8.6",
+    "randomatic": ">=3.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "description": ""
+}

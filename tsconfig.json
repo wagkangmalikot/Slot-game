@@ -1,0 +1,32 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "sourceMap": true,
+        "module": "amd",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "outFile": "script.js"
+    },
+    "filesGlob": [
+        "typings/*.d.ts",
+        "js/*.ts"
+    ],
+    "files": [
+        "typings/pixi.js.d.ts",
+        "typings/lib.d.ts",
+        "js/Main.ts",
+        "js/SlotTheme.ts",
+        "js/SlotReel.ts",
+        "js/symbols.ts",
+        "js/Utils/Utils.ts"
+    ]
+}
