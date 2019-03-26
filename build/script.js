@@ -25,7 +25,7 @@ var Main;
                 forceCanvas: true
             }) || this;
             _this.EventBus = new PIXI.utils.EventEmitter();
-            _this.spinningStatus = 0;
+            _this.animationBehavior = 0;
             _this.totalReelStopped = 3;
             Main_1.SlotGame = _this;
             _this.theme = new Main_1.SlotTheme();
@@ -40,7 +40,7 @@ var Main;
         Main.prototype.updateReelStop = function () {
             this.totalReelStopped++;
             if (this.totalReelStopped == 3) {
-                this.spinningStatus = 0;
+                this.animationBehavior = 0;
                 this.theme.enableButton();
                 this.theme.checkWinning();
             }
@@ -63,9 +63,6 @@ var Main;
             var _this = _super.call(this) || this;
             _this.allWinningLine = [];
             _this.winIndex = 0;
-            _this.fsCount = 0;
-            _this.toFreeSpin = false;
-            _this.cheatCount = 0;
             _this.initialize();
             return _this;
         }
@@ -82,44 +79,25 @@ var Main;
             this.reelCol3 = this.addChild(new Main.SlotReel(2));
             this.reelCol3.x = 460;
             this.spinBtn = this.addChild(PIXI.Sprite.fromFrame("btn_spin_normal.png"));
-            this.enableButton();
+            this.spinBtn.buttonMode = this.spinBtn.interactive = true;
             this.spinBtn.on("mousedown", function () { this.updateButtonState('pressed'); }, this)
                 .on('mouseup', this.clickHandler, this)
                 .on('mouseupoutside', function () { this.updateButtonState('normal'); }, this)
                 .on('mouseover', function () { this.updateButtonState('hover'); }, this)
                 .on('mouseout', function () { this.updateButtonState('normal'); }, this);
             this.spinBtn.position.set(700, 420);
+            var __this = this;
+            this.themeTimer = setTimeout(function () {
+                __this.showBonus();
+            }, 1000);
         };
         SlotTheme.prototype.clickHandler = function () {
-            Main.SlotGame.spinningStatus = 1;
-            this.disableButton();
-            switch (this.cheatCount) {
-                case 1:
-                    Main.SlotGame.spinningFunc.Spin('winning');
-                    break;
-                case 3:
-                    Main.SlotGame.spinningFunc.Spin('bonus');
-                    break;
-                default:
-                    Main.SlotGame.spinningFunc.Spin('normal');
-                    break;
-            }
+            Main.SlotGame.animationBehavior = 1;
+            this.spinBtn.interactive = this.spinBtn.buttonMode = false;
+            this.updateButtonState('disabled');
+            Main.SlotGame.spinningFunc.Spin();
             Main.SlotGame.EventBus.emit(Main.ON_SPIN);
             this.resetSymbols();
-            if (this.toFreeSpin && this.fsCount > 0) {
-                this.fsCount--;
-                this.freeSpinFeat.updateFS(this.fsCount);
-            }
-            else {
-                if (this.toFreeSpin) {
-                    this.cheatCount = 0;
-                    this.freeSpinFeat.exit();
-                    this.toFreeSpin = false;
-                }
-            }
-            if (this.fsCount == 0) {
-                this.cheatCount += 1;
-            }
         };
         SlotTheme.prototype.resetSymbols = function () {
             this.winIndex = 0;
@@ -139,7 +117,6 @@ var Main;
             var resultArray = [];
             var checkIndex = 0;
             var wincount = 0;
-            this.allWinningLine = [];
             resultArray.push(this.reelCol1.result);
             resultArray.push(this.reelCol2.result);
             resultArray.push(this.reelCol3.result);
@@ -150,10 +127,7 @@ var Main;
                             if (value.payline[i][a] == 1 && resultArray[i][a] == checkIndex) {
                                 wincount++;
                                 if (wincount == 3) {
-                                    if (resultArray[i][a] == 10) {
-                                        this.disableButton();
-                                    }
-                                    this.allWinningLine.push([value.payline, resultArray[i][a]]);
+                                    this.allWinningLine.push(value.payline);
                                 }
                             }
                         }
@@ -176,47 +150,27 @@ var Main;
                     for (var a = 0; a < 3; a++) {
                         switch (i) {
                             case 0:
-                                if (this.allWinningLine[this.winIndex][0][i][a] == 1) {
+                                if (this.allWinningLine[this.winIndex][i][a] == 1) {
                                     this.reelCol1.animateSymbols(a);
                                 }
                                 break;
                             case 1:
-                                if (this.allWinningLine[this.winIndex][0][i][a] == 1) {
+                                if (this.allWinningLine[this.winIndex][i][a] == 1) {
                                     this.reelCol2.animateSymbols(a);
                                 }
                                 break;
                             case 2:
-                                if (this.allWinningLine[this.winIndex][0][i][a] == 1) {
+                                if (this.allWinningLine[this.winIndex][i][a] == 1) {
                                     this.reelCol3.animateSymbols(a);
                                 }
                                 break;
                         }
                     }
                 }
-                if (this.allWinningLine[this.winIndex][1] == 10) {
-                    this.themeTimer = setTimeout(function () {
-                        __this.showBonus();
-                        clearTimeout(__this.themeTimer);
-                        __this.themeTimer = null;
-                    }, 1000);
-                    this.winIndex++;
-                    return;
-                }
                 this.winIndex++;
             }
             else {
                 this.winIndex = 0;
-                if (this.toFreeSpin && this.fsCount > 0) {
-                    this.themeTimer = setTimeout(function () {
-                        __this.clickHandler();
-                    }, 1000);
-                }
-                else if (this.toFreeSpin && this.fsCount == 0) {
-                    this.cheatCount = 0;
-                    this.toFreeSpin = false;
-                    this.freeSpinFeat.exit();
-                }
-                return;
             }
             this.themeTimer = setTimeout(function () {
                 __this.animateWinning(__this);
@@ -226,36 +180,24 @@ var Main;
             this.updateButtonState('normal');
             this.spinBtn.buttonMode = this.spinBtn.interactive = true;
         };
-        SlotTheme.prototype.disableButton = function () {
-            this.updateButtonState('disabled');
-            this.spinBtn.buttonMode = this.spinBtn.interactive = false;
-        };
         SlotTheme.prototype.updateButtonState = function (state) {
             this.spinBtn.texture = PIXI.Texture.fromFrame("btn_spin_" + state + ".png");
         };
         SlotTheme.prototype.showBonus = function () {
-            this.disableButton();
+            this.spinBtn.interactive = this.spinBtn.buttonMode = false;
+            this.updateButtonState('disabled');
             this.reelCol1.alpha = 0;
             this.reelCol2.alpha = 0;
             this.reelCol3.alpha = 0;
             this.bonusGame = this.addChild(new Main.Bonus());
         };
         SlotTheme.prototype.endBonus = function (prize) {
-            this.fsCount = prize;
             this.removeChild(this.bonusGame);
             this.bonusGame = null;
             this.reelCol1.alpha = 1;
             this.reelCol2.alpha = 1;
             this.reelCol3.alpha = 1;
             this.showFreespin();
-        };
-        SlotTheme.prototype.showFreespin = function () {
-            this.toFreeSpin = true;
-            this.freeSpinFeat = this.addChild(new Main.Freespin(this.fsCount));
-        };
-        SlotTheme.prototype.endFreespin = function () {
-            this.removeChild(this.freeSpinFeat);
-            this.freeSpinFeat = null;
         };
         SlotTheme.prototype.update = function () {
             this.reelCol1.update();
@@ -327,7 +269,7 @@ var Main;
         };
         SlotReel.prototype.update = function () {
             var _this = this;
-            if (Main.SlotGame.spinningStatus == 0 || this.spinDone) {
+            if (Main.SlotGame.animationBehavior == 0 || this.spinDone) {
                 this.reelContainer.y = this.posYArr[0];
                 this.reelContainer2.y = this.posYArr[1];
                 return;
@@ -341,7 +283,7 @@ var Main;
             this.reelContainer2.y = this.reelContainer2.y + speed;
             if (this.reelContainer.y >= this.reelContainer.height) {
                 this.reelContainer.y = this.reelContainer2.y - (this.reelContainer.height);
-                if (Main.SlotGame.spinningStatus == 2) {
+                if (Main.SlotGame.animationBehavior == 2) {
                     this.isStopping = true;
                     this.result.forEach(function (element, index) {
                         _this.symbols_array[index].updateSymbol(element);
@@ -361,7 +303,7 @@ var Main;
                     element.updateSymbol(_this.symbolLists[_this.currIndex]);
                     _this.currIndex = _this.currIndex < _this.symbolLists.length - 1 ? _this.currIndex + 1 : 0;
                 });
-                if (Main.SlotGame.spinningStatus == 2 && this.isStopping && this.reelNum == Main.SlotGame.totalReelStopped) {
+                if (Main.SlotGame.animationBehavior == 2 && this.isStopping && this.reelNum == Main.SlotGame.totalReelStopped) {
                     Main.SlotGame.updateReelStop();
                     this.spinDone = true;
                     this.delay_ = this.reelNum * 10;
@@ -427,17 +369,9 @@ var Main;
     }
     Main.random = random;
     function generateResult() {
-        return [random(), random(), random()];
+        return [2, 1, 3];
     }
     Main.generateResult = generateResult;
-    function generateResultBonus() {
-        return [1, 10, 1];
-    }
-    Main.generateResultBonus = generateResultBonus;
-    function generateResultWin() {
-        return [1, 4, 7];
-    }
-    Main.generateResultWin = generateResultWin;
 })(Main || (Main = {}));
 var Main;
 (function (Main) {
@@ -449,25 +383,15 @@ var Main;
             _this.results = [];
             return _this;
         }
-        Spinning.prototype.Spin = function (type) {
+        Spinning.prototype.Spin = function () {
             this.results = [];
             Main.SlotGame.totalReelStopped = 0;
             for (var i = 0; i < 3; i++) {
-                switch (type) {
-                    case 'normal':
-                        this.results.push(Main.generateResult());
-                        break;
-                    case 'bonus':
-                        this.results.push(Main.generateResultBonus());
-                        break;
-                    case 'winning':
-                        this.results.push(Main.generateResultWin());
-                        break;
-                }
+                this.results.push(Main.generateResult());
             }
             setTimeout(function () {
                 Main.SlotGame.EventBus.emit(Main.SPIN_RESULT);
-                Main.SlotGame.spinningStatus = 2;
+                Main.SlotGame.animationBehavior = 2;
             }, 1000);
         };
         Spinning.prototype.getResult = function (index) {
@@ -488,7 +412,7 @@ var Main;
         }
         Bonus.prototype.initialize = function () {
             var __this = this;
-            var text = this.addChild(new PIXI.Text('Choose a chip', { fontFamily: 'Arial', fontSize: 40, fill: 0xff1010, align: 'center' }));
+            var text = this.addChild(new PIXI.Text('Choose 1 to win Free spin', { fontFamily: 'Arial', fontSize: 40, fill: 0xff1010, align: 'center' }));
             text.anchor.set(.5);
             text.position.set(360, 220);
             text.scale.set(.1, .1);
@@ -531,56 +455,16 @@ var Main;
             this.item1.interactive = this.item1.buttonMode = false;
             this.item2.interactive = this.item2.buttonMode = false;
             this.item3.interactive = this.item3.buttonMode = false;
-            this.bonusWin = Math.floor(Math.random() * (5 - 1 + 1)) + 2;
-            var text = this.addChild(new PIXI.Text(this.bonusWin.toString() + "\nFree Spin", { fontFamily: 'Arial', fontSize: 40, fill: 0xff1010, align: 'center' }));
+            this.bonusWin = Math.floor(Math.random() * (10 - 1 + 1)) + 2;
+            var text = this.addChild(new PIXI.Text(this.bonusWin.toString() + '\nFREE\nSPINS', { fontFamily: 'Arial', fontSize: 30, fill: 0xff1010, align: 'center' }));
             text.anchor.set(.5);
             text.position.set(e.currentTarget.x, e.currentTarget.y);
-            var __this = this;
-            setTimeout(function () {
-                __this.exitBonus();
-            }, 3000);
+            this.exitBonus();
         };
         Bonus.prototype.exitBonus = function () {
-            TweenLite.to(this, .5, { delay: 2, alpha: 0, onComplete: Main.SlotGame.theme.endBonus(this.bonusWin) });
+            TweenLite.to(this, .5, { delay: 1, alpha: 0, onComplete: Main.SlotGame.theme.endBonus(this.bonusWin) });
         };
         return Bonus;
     }(PIXI.Container));
     Main.Bonus = Bonus;
-})(Main || (Main = {}));
-var Main;
-(function (Main) {
-    var Freespin = (function (_super) {
-        __extends(Freespin, _super);
-        function Freespin(fsWon) {
-            var _this = _super.call(this) || this;
-            _this.fsAmount = fsWon;
-            _this.initialize();
-            return _this;
-        }
-        Freespin.prototype.initialize = function () {
-            this.position.set(900, 120);
-            this.holder = this.addChild(PIXI.Sprite.fromFrame("fs_holder.png"));
-            var text = this.addChild(new PIXI.Text('Free Spin', { fontFamily: 'Arial', fontSize: 30, fill: 0x000000, align: 'center' }));
-            text.anchor.set(.5);
-            text.position.set(100, 40);
-            this.txtFS = this.addChild(new PIXI.Text(this.fsAmount.toString(), { fontFamily: 'Arial', fontSize: 50, fill: 0x000000, align: 'center' }));
-            this.txtFS.anchor.set(.5);
-            this.txtFS.position.set(100, 140);
-            TweenLite.to(this, .5, { x: 700 });
-            setTimeout(function () {
-                Main.SlotGame.theme.clickHandler();
-            }, 2000);
-        };
-        Freespin.prototype.updateFS = function (_count) {
-            this.txtFS.text = _count.toString();
-        };
-        Freespin.prototype.exit = function () {
-            TweenLite.to(this, .5, { x: 900 });
-            setTimeout(function () {
-                Main.SlotGame.theme.endFreespin();
-            }, 2000);
-        };
-        return Freespin;
-    }(PIXI.Container));
-    Main.Freespin = Freespin;
 })(Main || (Main = {}));

@@ -31,7 +31,6 @@
         "js/symbols.ts",
         "js/Utils/Utils.ts",
         "js/Utils/Spinning.ts",
-        "js/Bonus.ts",
-        "js/Freespin.ts"
+        "js/Bonus.ts"
     ]
 }

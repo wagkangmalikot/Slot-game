@@ -1,15 +1,15 @@
 namespace Main {
     
-    export const WIDTH = 800; // width of slot
-    export const HEIGHT = 800;// height of slot
-    export const ON_SPIN = "onSpin";//variable to track if the reel is spinning
+    export const WIDTH = 800;
+    export const HEIGHT = 800;
+    export const ON_SPIN = "onSpin";
         
     export class Main extends PIXI.Application {
-        public theme: SlotTheme;// class handle the theme of the slot
+        public theme: SlotTheme;
         public EventBus: PIXI.utils.EventEmitter = new PIXI.utils.EventEmitter();
-        public spinningStatus: number = 0; //0 = complete stop, 1 = spin, 2 = stopping 
-        public totalReelStopped: number = 3;// to track how many reel stop
-        public spinningFunc: Spinning;// class handle the spinning of the reel
+        public animationBehavior: number = 0; //0 = complete stop, 1 = spin, 2 = stopping 
+        public totalReelStopped: number = 3;
+        public spinningFunc: Spinning;
         constructor() {
             super({
                 view: document.getElementById("game-canvas") as HTMLCanvasElement,
@@ -29,17 +29,17 @@ namespace Main {
         private update(elapsed: number) {
             this.theme.update();
         }
-        public updateReelStop() { //this will be call everytime the reel stop.
+        public updateReelStop() {
             this.totalReelStopped++;
             if (this.totalReelStopped == 3) {
-                this.spinningStatus = 0;
-                this.theme.enableButton(); //enable the spin button
-                this.theme.checkWinning();// this will check if there are winnings in reel stop
+                this.animationBehavior = 0;
+                this.theme.enableButton();
+                this.theme.checkWinning();
             }
         }
     }
     
-    PIXI.loader.add("spritesJSON", "asset/img/sprites.json") // load images and json
+    PIXI.loader.add("spritesJSON", "asset/img/sprites.json")
         .add("sprites", "asset/img/sprites.png");
     PIXI.loader.load();
     PIXI.loader.onComplete.add(() => {
