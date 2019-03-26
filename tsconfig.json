@@ -14,19 +14,24 @@
         "noLib": false,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,
+        "allowSyntheticDefaultImports": true,
         "outFile": "script.js"
     },
     "filesGlob": [
         "typings/*.d.ts",
-        "js/*.ts"
+        "js/*.ts",
+        "js/Utils*.ts"
     ],
     "files": [
         "typings/pixi.js.d.ts",
-        "typings/lib.d.ts",
+        "typings/jquery.d.ts",
         "js/Main.ts",
         "js/SlotTheme.ts",
         "js/SlotReel.ts",
         "js/symbols.ts",
-        "js/Utils/Utils.ts"
+        "js/Utils/Utils.ts",
+        "js/Utils/Spinning.ts",
+        "js/Bonus.ts",
+        "js/Freespin.ts"
     ]
 }
