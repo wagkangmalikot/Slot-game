@@ -6,16 +6,27 @@ module Main {
             super();
         }
 
-        public Spin() {
+        public Spin(type: string) {
             this.results = [];
             SlotGame.totalReelStopped = 0;
             for (let i = 0; i < 3; i++) {
-                this.results.push(generateResult());
+                switch(type){
+                    case 'normal':
+                    this.results.push(generateResult());//the deault random result in every spin
+                    break;
+                    case 'bonus':
+                    this.results.push(generateResultBonus());// just to force the game to win bonus
+                    break;
+                    case 'winning':
+                    this.results.push(generateResultWin());// just to force the game to win symbols
+                    break;
+                }
+                
             }
             setTimeout(
                 function () {
                     SlotGame.EventBus.emit(SPIN_RESULT);
-                    SlotGame.animationBehavior = 2;
+                    SlotGame.spinningStatus = 2;
                 }
                 , 1000);
 
